@@ -4,6 +4,15 @@
 
 macOS 剪贴板历史工具。菜单栏常驻，全局快捷键在打字光标处唤起毛玻璃面板，选中即复制并自动粘贴。Swift + SwiftUI 原生实现。
 
+## 截图
+
+<p align="center">
+  <img src="Docs/screenshot-history.png" width="620" alt="历史列表面板">
+</p>
+<p align="center">
+  <img src="Docs/screenshot-empty.png" width="620" alt="空状态面板">
+</p>
+
 ## 功能
 
 - 记录文字与图片剪贴板历史（SQLite + 图片文件持久化，默认上限 1000 条）
