@@ -37,6 +37,8 @@ open build/MMac-clipboard.app
 1. 启动后菜单栏出现剪贴板图标。
 2. 按 `⇧⌘V` 唤起面板；首次粘贴会引导前往 系统设置 → 隐私与安全性 → 辅助功能 授权（用于自动粘贴与光标定位，不授权则退化为仅复制）。
 
+> **开发注意**：本地构建使用 ad-hoc 签名，每次重新构建指纹都会变化，系统里的辅助功能授权会静默失效。`./scripts/build-app.sh` 重新打包后，请在辅助功能列表中先移除旧的 MMac-clipboard 再重新添加。面板底栏出现橙色「未授权辅助功能」提示即为授权失效信号。
+
 ## 数据位置
 
 - 数据库：`~/Library/Application Support/MMac-clipboard/history.sqlite`
