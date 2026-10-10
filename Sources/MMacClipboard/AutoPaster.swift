@@ -19,18 +19,27 @@ enum AutoPaster {
         }
     }
 
-    /// 合成一次 ⌘V 按键发给系统，落到当前聚焦的输入位置。需要辅助功能授权。
-    static func paste() {
+    /// 合成一次 ⌘V 按键。优先按进程 ID 定向投递给目标 App（避免焦点竞态），
+    /// 没有目标时退回系统 HID 层广播。需要辅助功能授权。
+    static func paste(into target: NSRunningApplication?) {
         guard AXIsProcessTrusted() else { return }
+        let pid = target?.processIdentifier
         let source = CGEventSource(stateID: .combinedSessionState)
         let vKey = CGKeyCode(9) // kVK_ANSI_V
 
         let keyDown = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: true)
         keyDown?.flags = .maskCommand
-        keyDown?.post(tap: .cghidEventTap)
-
         let keyUp = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: false)
         keyUp?.flags = .maskCommand
-        keyUp?.post(tap: .cghidEventTap)
+
+        if let pid, target?.isTerminated == false {
+            NSLog("[paste] 定向投递 ⌘V → pid \(pid) (\(target?.bundleIdentifier ?? "?"))")
+            keyDown?.postToPid(pid)
+            keyUp?.postToPid(pid)
+        } else {
+            NSLog("[paste] 广播 ⌘V 到 HID 层")
+            keyDown?.post(tap: .cghidEventTap)
+            keyUp?.post(tap: .cghidEventTap)
+        }
     }
 }

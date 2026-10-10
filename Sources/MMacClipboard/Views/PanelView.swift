@@ -111,18 +111,36 @@ struct PanelView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 14) {
-            Text("↩ 粘贴")
-            Text("↑↓ 选择")
-            Text("1-9 快选")
-            Text("⌫ 删除")
-            Spacer()
-            Text("\(settings.hotkeyDisplay) 唤起 · Esc 关闭")
+        VStack(spacing: 0) {
+            if !state.accessibilityTrusted {
+                Button {
+                    state.onOpenAccessibilitySettings?()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("未授权辅助功能：选中仅复制，不会自动粘贴 · 点击去授权")
+                    }
+                    .font(.system(size: 11))
+                    .foregroundStyle(.orange)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(Color.orange.opacity(0.08))
+                }
+                .buttonStyle(.plain)
+            }
+            HStack(spacing: 14) {
+                Text("↩ 粘贴")
+                Text("↑↓ 选择")
+                Text("1-9 快选")
+                Text("⌫ 删除")
+                Spacer()
+                Text("\(settings.hotkeyDisplay) 唤起 · Esc 关闭")
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(.tertiary)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
         }
-        .font(.system(size: 11))
-        .foregroundStyle(.tertiary)
-        .padding(.horizontal, 18)
-        .padding(.vertical, 10)
     }
 
     private var separator: some View {

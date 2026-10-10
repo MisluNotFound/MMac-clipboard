@@ -13,6 +13,11 @@ final class AppState: ObservableObject {
     var onItemSelected: ((ClipboardItem) -> Void)?
     /// 仅复制不粘贴（右键菜单）
     var onItemCopied: ((ClipboardItem) -> Void)?
+    /// 面板底栏的授权提示被点击
+    var onOpenAccessibilitySettings: (() -> Void)?
+
+    /// 辅助功能授权状态（面板每次弹出时刷新，用于底栏提示）
+    @Published private(set) var accessibilityTrusted = AutoPaster.isTrusted
 
     private let store: SQLiteStore
     private let settings: SettingsStore
@@ -95,6 +100,7 @@ final class AppState: ObservableObject {
     func prepareForShow() {
         query = ""
         selectedIndex = 0
+        accessibilityTrusted = AutoPaster.isTrusted
     }
 
     func queryChanged() {

@@ -28,6 +28,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             PasteboardWriter.write(item)
             self?.panel.hide()
         }
+        state.onOpenAccessibilitySettings = { [weak self] in
+            self?.panel.hide()
+            AutoPaster.openAccessibilitySettings()
+        }
         state.reload()
         state.pruneToLimit()
 
@@ -69,13 +73,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !condition { passed = false }
         }
 
-        let expectedText = "第二条：SwiftUI 毛玻璃面板测试 https://example.com"
+        // 自带种子：插入一条唯一文本，测完删除，不依赖外部历史
+        let marker = "SELFTEST-\(UUID().uuidString.prefix(8))"
+        let expectedText = "\(marker) 自动化冒烟条目"
+        state.ingest(CapturePayload(
+            content: .text(expectedText),
+            imagePath: nil,
+            contentHash: "selftest-\(marker)",
+            sourceBundleID: nil,
+            sourceName: "SelfTest",
+            capturedAt: Date()
+        ))
+        defer { if let seeded = state.items.first(where: { $0.text == expectedText }) { state.delete(seeded) } }
 
         panel.show()
         check(panel.panel.isVisible, "show() 后面板可见")
         check(state.filteredItems.count >= 3, "历史记录已加载（\(state.filteredItems.count) 条）")
 
-        state.query = "SwiftUI"
+        state.query = marker
         check(state.filteredItems.count == 1 && state.filteredItems.first?.displayText == expectedText, "搜索过滤命中唯一条目")
 
         state.query = ""
@@ -189,10 +204,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.hide { [weak self] in
             guard let self else { return }
             if AutoPaster.isTrusted {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                    AutoPaster.paste()
+                let target = self.panel.targetApp ?? NSWorkspace.shared.frontmostApplication
+                // 显式唤回目标 App，给系统一点时间恢复键盘焦点，再定向投递 ⌘V
+                target?.activate()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    AutoPaster.paste(into: target)
                 }
             } else {
+                NSLog("[paste] 跳过：辅助功能未授权")
                 self.showAccessibilityHintIfNeeded()
             }
         }

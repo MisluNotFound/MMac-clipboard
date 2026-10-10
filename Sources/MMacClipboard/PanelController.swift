@@ -24,6 +24,8 @@ final class PanelController {
     private let settings: SettingsStore
     private let locator = CaretLocator()
     var onOpenSettings: (() -> Void)?
+    /// 唤起面板时的前台 App：选中条目后把 ⌘V 定向投递给它（在 makeKey 抢焦点之前记录）
+    private(set) var targetApp: NSRunningApplication?
 
     private var localKeyMonitor: Any?
     private var globalMouseMonitor: Any?
@@ -101,6 +103,7 @@ final class PanelController {
         panel.setFrameOrigin(startOrigin)
         panel.alphaValue = 0
 
+        targetApp = NSWorkspace.shared.frontmostApplication
         state.prepareForShow()
         panel.orderFrontRegardless()
         panel.makeKey()
